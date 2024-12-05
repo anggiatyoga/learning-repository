@@ -33,7 +33,7 @@ dummy_notes = [
   },
 ];
 
-notes = [];
+const container_notes = document.getElementById("container-notes");
 
 const container_notes_archived = document.getElementById("list-note-archived");
 
@@ -45,6 +45,8 @@ const label_notes_archive = document.getElementById("label_notes_archive");
 
 const note_form = document.getElementById("note_form");
 
+var notes = [];
+
 document.addEventListener("DOMContentLoaded", () => {
   loadNotesList();
   note_form.addEventListener("submit", (e) => {
@@ -54,24 +56,27 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function loadNotesList() {
-  if (notes.length === 0) {
-    const one = generateEmptyText();
-    const two = generateEmptyText();
+  container_notes_active.innerHTML = "";
+  container_notes_archived.innerHTML = "";
 
-    label_notes_active.after(one);
-    label_notes_archive.after(two);
+  notes_active = [];
+  notes_archived = [];
 
-    return;
-  }
-
-  dummy_notes.forEach((note) => {
-    const container_card = generateCardNote(note);
-    if (note.archived) {
-      container_notes_archived.append(container_card);
-    } else {
-      container_notes_active.append(container_card);
-    }
+  this.notes.forEach((note) => {
+    (note.archived ? notes_archived : notes_active).push(note);
   });
+
+  const generateNoteCard = (notes, container) => {
+    if (notes.length === 0) {
+      container.append(generateEmptyText());
+    } else {
+      const noteCards = notes.map(generateCardNote);
+      container.append(...noteCards);
+    }
+  };
+
+  generateNoteCard(notes_active, container_notes_active);
+  generateNoteCard(notes_archived, container_notes_archived);
 }
 
 function generateEmptyText(archive) {
@@ -147,11 +152,20 @@ function generateCardNote({ id, title, date, content, archived }) {
 }
 
 function deleteNote(id) {
-  alert(`delete note id ${id}`);
+  const note = findNoteIndex(id);
+
+  if (note === 1) return;
+
+  notes.splice(note, 1);
+  loadNotesList();
 }
 
 function archiveNote(id) {
-  alert(`archive note id ${id}`);
+  const note = notes.find((note) => note.id === id);
+  if (note) {
+    note.archived = !note.archived;
+    loadNotesList();
+  }
 }
 
 function addNote() {
@@ -164,27 +178,36 @@ function addNote() {
   //   alert(`dateNow: ${date}`);
   const noteObj = {
     title: title,
-    note: note,
+    content: note,
     id: id,
     date: date,
     archived: archived,
   };
-  notes.append(noteObj);
+  this.notes.push(noteObj);
+
+  loadNotesList();
 }
 
 function generateDateTime() {
   const now = new Date();
 
-  // Format the date part
   const dateOptions = { month: "short", day: "numeric", year: "numeric" };
   const formattedDate = now.toLocaleDateString("en-US", dateOptions);
 
-  // Format the time part (24-hour format)
   const timeOptions = { hour: "2-digit", minute: "2-digit", hour12: false };
   const formattedTime = now.toLocaleTimeString("en-US", timeOptions);
 
-  // Combine date and time with a hyphen
   const dateTimeString = `${formattedDate} - ${formattedTime}`;
 
   return dateTimeString;
+}
+
+function findNoteIndex(id) {
+  for (const index in notes) {
+    if (notes[index].id === id) {
+      return index;
+    }
+  }
+
+  return -1;
 }

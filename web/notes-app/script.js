@@ -45,7 +45,11 @@ const label_notes_archive = document.getElementById("label_notes_archive");
 
 const note_form = document.getElementById("note_form");
 
+const search_input = document.getElementById("search_input");
+
 var notes = [];
+
+var filtered_title_notes = [];
 
 document.addEventListener("DOMContentLoaded", () => {
   loadNotesList();
@@ -55,16 +59,21 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
+search_input.addEventListener("input", (e) => {
+  filterNotesByTitle(e.target.value);
+});
+
 function loadNotesList() {
   container_notes_active.innerHTML = "";
   container_notes_archived.innerHTML = "";
 
-  notes_active = [];
-  notes_archived = [];
+  notes_list =
+    filtered_title_notes.length !== 0 || search_input.value.length !== 0
+      ? filtered_title_notes
+      : this.notes;
 
-  this.notes.forEach((note) => {
-    (note.archived ? notes_archived : notes_active).push(note);
-  });
+  notes_active = notes_list.filter((note) => !note.archived);
+  notes_archived = notes_list.filter((note) => note.archived);
 
   const generateNoteCard = (notes, container) => {
     if (notes.length === 0) {
@@ -175,7 +184,6 @@ function addNote() {
   const date = generateDateTime();
   const archived = false;
 
-  //   alert(`dateNow: ${date}`);
   const noteObj = {
     title: title,
     content: note,
@@ -184,6 +192,8 @@ function addNote() {
     archived: archived,
   };
   this.notes.push(noteObj);
+
+  note_form.reset();
 
   loadNotesList();
 }
@@ -200,6 +210,23 @@ function generateDateTime() {
   const dateTimeString = `${formattedDate} - ${formattedTime}`;
 
   return dateTimeString;
+}
+
+function filterNotesByTitle(search_title) {
+  console.log(`search => ${search_title} - notes.length ${notes.length}`);
+
+  let note_filtered = [];
+
+  notes.map((note) => {
+    if (note.title.toLowerCase().includes(search_title)) {
+      filtered_title_notes.push(note);
+      note_filtered.push(note);
+    }
+  });
+
+  filtered_title_notes = note_filtered;
+
+  loadNotesList();
 }
 
 function findNoteIndex(id) {

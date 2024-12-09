@@ -1,23 +1,25 @@
 import React from "react";
 import NoteHeader from "./NoteHeader";
 import NoteBody from "./NoteBody";
-import { getDummyNotes } from "../utils";
+import { isArrayEmpty, isStringEmpty } from "../utils";
 
 class NoteApp extends React.Component {
   constructor(props) {
     super(props);
 
     this.state = {
-      notes: getDummyNotes(),
+      notes: [],
+      filteredNotes: [],
+      searchNote: "",
     };
 
     this.onAddNoteHandler = this.onAddNoteHandler.bind(this);
     this.onDeleteNoteHandler = this.onDeleteNoteHandler.bind(this);
     this.onArchiveNoteHandler = this.onArchiveNoteHandler.bind(this);
+    this.onSearchNoteHandler = this.onSearchNoteHandler.bind(this);
   }
 
-  onAddNoteHandler({ title, body }) {
-    console.log(`title: ${title} body: ${body}`);
+  onAddNoteHandler({ title, note }) {
     const timestamp = new Date().toISOString();
     this.setState((prevState) => {
       return {
@@ -26,7 +28,7 @@ class NoteApp extends React.Component {
           {
             id: +new Date(),
             title: title,
-            body: body,
+            content: note,
             createdAt: timestamp,
             archived: false,
           },
@@ -51,12 +53,35 @@ class NoteApp extends React.Component {
     this.setState({ notes });
   }
 
+  onSearchNoteHandler(searchText) {
+    if (isStringEmpty(searchText)) {
+      this.setState({ filteredNotes: [], searchNote: "" });
+    } else {
+      let filteredNotes = [];
+      this.state.notes.map((note) => {
+        if (note.title.toLowerCase().includes(searchText)) {
+          filteredNotes.push(note);
+        }
+      });
+
+      this.setState({
+        filteredNotes: filteredNotes,
+        searchNote: searchText,
+      });
+    }
+  }
+
   render() {
     return (
       <div className="note-app">
-        <NoteHeader />
+        <NoteHeader searchNote={this.onSearchNoteHandler} />
         <NoteBody
-          notes={this.state.notes}
+          notes={
+            isArrayEmpty(this.state.filteredNotes) &&
+            isStringEmpty(this.state.searchNote)
+              ? this.state.notes
+              : this.state.filteredNotes
+          }
           addNote={this.onAddNoteHandler}
           deleteNote={this.onDeleteNoteHandler}
           archiveNote={this.onArchiveNoteHandler}

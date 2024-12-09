@@ -35,4 +35,7 @@ const getDummyNotes = () => [
 
 const isArrayEmpty = (array) => Array.isArray(array) && array.length === 0;
 
-export { getDummyNotes, isArrayEmpty };
+const isStringEmpty = (value) =>
+  value == null || (typeof value === "string" && value.trim().length === 0);
+
+export { getDummyNotes, isArrayEmpty, isStringEmpty };
